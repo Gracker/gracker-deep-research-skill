@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gracker Deep Research"
+  short_description: "Three-phase research reports"
+  default_prompt: "Use $gracker-deep-research to research this topic deeply and write a cited report."
