@@ -1,15 +1,15 @@
 ---
 name: gracker-deep-research
-description: Gracker Deep Research Skill · 深度技术调研的完整交付工作流：本地扫描 → 探索与证据落盘 → 断网写作与四层质检 → Gracker 风格真实成图 → Obsidian 归档。适用于「深度调研 XXX」「Gracker Research XXX」「dg XXX」以及需要把技术研究、引用、图片和过程材料一起沉淀到知识库的任务。
+description: Gracker Deep Research Skill · 三阶段调研法（本地扫描 → 探索落盘 → 利用写作）。Phase 0 扫描本地优质资料，Phase 1 全力搜索并落盘，Phase 2 断网只读本地文件写报告 + Gracker 写作四层质检。触发词：「深度调研 XXX」/ 「Gracker Research XXX」/ 「dg XXX」。
 ---
 
 # Gracker Deep Research Skill
 
-> **核心理念**：研究、写作、视觉化和发布四段解耦。先把网络证据完整落盘，再断网写作；报告通过质检后才生成 Gracker 风格图片，最后把报告、成图和过程材料作为一个可审计包发布到 Obsidian。
+> **核心理念**：三阶段解耦 —— 本地扫描（已有知识激活）→ 探索落盘（互联网 → 本地文件）→ 利用写作（断网读本地文件）。
 >
 > **质检标准**：Phase 2 报告必须通过 Gracker 写作四层质检，否则触发 rewrite。
 >
-> **配套 skill**：如果运行环境安装了 `gracker-writing`，优先读取其 `SKILL.md` 作为完整文风规范。技术调研默认还需要安装 `gracker-diagrams`；缺失时保留全部研究成果，但不得把任务标记为完整交付。
+> **可选配套 skill**：如果运行环境安装了 `gracker-writing`，优先读取其 `SKILL.md` 作为完整文风规范；否则使用本文内置的质检摘要。
 
 ---
 
@@ -20,13 +20,9 @@ local_vault_path: null        # 可选：本地知识库、笔记库或资料库
 workspace_path: .             # 当前项目或 AI 运行时工作目录
 research_output_dir: ./research
 writing_skill_path: null      # 可选：gracker-writing/SKILL.md 的本地路径
-diagram_skill_path: null      # gracker-diagrams/SKILL.md 的本地路径；技术调研交付必需
-obsidian_vault_path: null     # Obsidian vault 根目录，目录内必须存在 .obsidian/
-obsidian_research_dir: DeepResearch
-required_accepted_diagrams: 2 # 深度技术调研默认至少两张通过验收的成图
 ```
 
-**Portability**：所有路径都必须由当前用户、运行时或只读发现得到，不得写死用户名、HOME、模型或图像后端。`local_vault_path` 只影响可选的 Phase 0 扫描；`obsidian_vault_path` 和 `diagram_skill_path` 是完整交付门禁，不能用临时目录或伪图绕过。
+**Portability**：所有路径都必须由当前用户或运行时提供。路径不存在时 Phase 0 静默跳过，不阻断全流程；不得假定存在特定 AI 运行时、特定 HOME 路径或特定模型。
 
 ---
 
@@ -39,12 +35,10 @@ required_accepted_diagrams: 2 # 深度技术调研默认至少两张通过验收
 | **local context** | Phase 0 产出的本地知识摘要 |
 | **master research** | dump + local context 汇总后的单一文件 |
 | **四层质检** | L1 禁用词/硬伤 → L2 可读性 → L3 内容深度 → L4 活人感（Gracker 写作标准） |
-| **accepted diagram** | 已通过语义、文字、结构、风格和技术规格验收的真实栅格图片 |
-| **Obsidian 发布包** | 报告、成图、研究材料、成图中间文件和发布清单组成的可迁移目录 |
 
 ---
 
-## 四段工作流总览
+## 三阶段总览
 
 ```
 用户输入 (题目)
@@ -63,13 +57,6 @@ required_accepted_diagrams: 2 # 深度技术调研默认至少两张通过验收
 │  目标: 基于本地干净文件进行高频迭代写作                       │
 │  原则: 断网，只读本地文件                                   │
 │  质检: Gracker 写作四层标准，不通过则 rewrite              │
-├──────────────────────────────────────────────────────────┤
-│  PHASE 3: 视觉化 + 发布                                   │
-│  目标: Gracker 风格真实成图，并把完整研究包发布到 Obsidian   │
-│  门禁: 图片验收、嵌入可解析、材料可追溯                     │
-├──────────────────────────────────────────────────────────┤
-│  PHASE 4: 交付回执                                        │
-│  目标: 只报告已验证的产物、路径、数量和残余限制              │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -266,8 +253,6 @@ Prompt：读取 `references/writer-prompt-template.md`，用本次 topic、OUT_D
 
 详细质检规则和报告格式见 `references/quality-gate.md`。执行质检时先读取该文件，再结合可选 `gracker-writing` 规范检查报告草稿。
 
-把每轮结果写入 `{OUT_DIR}/quality-report.md`；rewrite 后更新该文件，保留轮次和最终结论。Phase 3 发布脚本会把它作为完成证据校验。
-
 ### rewrite 触发逻辑
 
 | 质检结果 | 处理 |
@@ -277,7 +262,7 @@ Prompt：读取 `references/writer-prompt-template.md`，用本次 topic、OUT_D
 | L2 不通过（其他项） | 可选 rewrite，明确告知具体段落 |
 | L3-1/3-2 不通过 | **强制 rewrite**，指出缺乏支撑的具体判断 |
 | L4 整体不通过 | **强制 rewrite**，给出"哪个段落 AI 味重"的具体指引 |
-| 全部通过 | 进入 Phase 3 视觉化与发布 |
+| 全部通过 | 进入 Phase 3 交付 |
 
 **rewrite 配置**：
 - 执行方式：复用 Phase 2b 的写作执行方式；如果运行时支持独立 writer/rewrite 任务，可以单独执行
@@ -287,72 +272,14 @@ Prompt：读取 `references/writer-prompt-template.md`，用本次 topic、OUT_D
 
 ---
 
-## Phase 3: Gracker 视觉化 + Obsidian 发布
+## Phase 3: 交付
 
-开始前必须读取 `references/visual-obsidian-delivery.md`，并读取 `diagram_skill_path` 指向的完整 `gracker-diagrams/SKILL.md`。后者是图片分析、结构化、提示词、生成与验收的执行规范；本文只定义深度调研的选图策略和发布门禁。
-
-### Phase 3a: 选择图片
-
-- 深度技术调研默认产出 `required_accepted_diagrams` 张图片，默认值为 2。
-- 至少覆盖两类信息：① 架构、机制或时序；② 方案选择、评审清单或结论摘要。
-- 每张图片必须服务于正文中的明确章节，不为装饰而作图。
-- 如果用户明确指定更少数量，可降低门禁；否则不能因生成困难自行降级。
-
-### Phase 3b: 生成与验收
-
-每张图都必须保留下列中间文件：
-
-```text
-gracker-diagrams/{diagram-name}/
-├── source.md
-├── analysis.md
-├── structured-content.md
-├── copy.md
-├── prompts/infographic.md
-├── output/diagram.png
-└── quality-review.md
-```
-
-必须调用真实图像生成能力并遵循 Gracker 风格。不得用 HTML、SVG、Mermaid 或网页截图冒充生成图。每张图最多进行一次有针对性的视觉修正；修正后仍有事实、字符或结构错误，则标记为 rejected，不计入完成数量，也不得嵌入报告。
-
-### Phase 3c: 发布到 Obsidian
-
-1. 验证 `obsidian_vault_path/.obsidian/` 存在；缺失时停止发布并请求正确路径。
-2. 在 `{obsidian_vault_path}/{obsidian_research_dir}/{YYYY-MM-DD}-{slug}/` 创建独立发布包。
-3. 可使用 `scripts/publish_to_obsidian.py` 做原子化复制和成图嵌入。脚本默认拒绝覆盖已存在目录；只有用户明确要求替换时才传 `--overwrite`。
-4. 检查 Obsidian note 中每个 `![[assets/...]]` 都能解析到非空文件，研究材料链接指向发布包内文件。
-5. 保留完整研究材料与每张 accepted diagram 的修订中间文件。整体被拒收的 diagram 可以留在 workspace 审计，但不得进入发布包；已通过 diagram 的早期修订稿只能留在它自己的 `gracker-diagrams/` 工作目录，不得进入 `assets/` 或主 note。
-
-发布包结构：
-
-```text
-{YYYY-MM-DD}-{slug}/
-├── {report-title}.md
-├── assets/
-│   └── *.png
-├── research-materials/
-├── gracker-diagrams/
-│   └── {diagram-name}/
-└── publish-manifest.json
-```
-
-### Phase 3d: 完成门禁
-
-以下条件必须全部成立，才能进入最终交付：
-
-- 报告和 `master-research.md` 存在且非空；
-- 引用来源已归档，正文关键结论可追溯；
-- accepted diagram 数量达到门禁，图片文件非空且通过验收；
-- Obsidian note 已嵌入全部 accepted diagrams，所有嵌入目标存在；
-- 发布包包含研究材料、成图中间文件和 `publish-manifest.json`；
-- 发布脚本或等价验证没有报错。
-
-## Phase 4: 交付回执
-
-1. **工作区报告路径**：`{research_output_dir}/{YYYY-MM-DD}-{slug}-深度调研.md`
-2. **Obsidian 路径**：给出实际 vault 内发布包路径和主 note 路径。
-3. **发送用户**：标题、摘要预览、来源数量、accepted/rejected 图片数量、质检轮次和可点击路径。不要把 rejected 图片计入成果。
-4. **可选记录**：如果运行环境提供 memory / notes / task log，则追加一条简短记录；没有则跳过，不影响已经完成的实体交付。
+1. **报告路径**：`{research_output_dir}/{YYYY-MM-DD}-{slug}-深度调研.md`
+2. **发送用户**：
+   - 标题 + 摘要预览（前 5 行）
+   - 全文
+   - 附注：`已完成。报告共 X 字，Phase 0 命中 {N} 个本地文件，Phase 1 抓取 {Z} 个来源，Phase 2c 四层质检 [通过/强制 rewrite X 轮]，参考资料 {M} 篇已归档。`
+3. **可选记录**：如果运行环境提供 memory / notes / task log，则追加一条简短记录；没有则跳过，不影响交付。
 
 ```
 ## [HH:MM] task | 深度调研·{topic}·已完成
@@ -361,26 +288,8 @@ gracker-diagrams/{diagram-name}/
 - Phase 1: Y 个研究员落盘，Z 个来源
 - Phase 2: 断网写作
 - Phase 2c: 四层质检 [{通过/强制 rewrite X 轮}]
-- Phase 3: Gracker 成图 {accepted} 张，拒收 {rejected} 张；已发布到 Obsidian
 - 报告: {research_output_dir}/{filename}
-- Obsidian: {obsidian_publish_dir}/{report-title}.md
 ```
-
----
-
-## 产出文件规范（cron / 定时任务与深度调研通用）
-
-所有最终笔记、报告和总结必须遵守以下规范，便于事后快速理解具体产物：
-
-- **文件名**：使用基于核心内容的描述性 slug（日期 + 主要主题关键词），例如 `2026-07-05-并行-Agent在Gracker研究workflow中的工程实践.md`；避免只有日期的纯时间戳文件名。
-- **摘要先行**：frontmatter 和一级标题之后立即放置独立的 `## 执行摘要` / `## Summary` 区块。任何人打开文件，前 15–20 行就能看到：
-  - 本次主要产出的文件与可解析路径 / wikilink；
-  - 1–3 条最关键发现或信号；
-  - 核心 takeaway 和仍存在的限制。
-- Phase 3 完成后，更新发布版执行摘要，加入 Obsidian 发布包、accepted diagrams 和研究材料路径。
-- 定时任务的最终交付内容（包括发往 Telegram 的部分）也必须以执行摘要开头。
-
-此规范与 `gracker-writing`、四层质检和 Obsidian 完成门禁共同生效。
 
 ---
 
@@ -404,11 +313,6 @@ gracker-diagrams/{diagram-name}/
 | Phase 0 扫描目录不存在 | **静默跳过** |
 | Phase 0 ripgrep 无结果 | 正常继续，输出"本地无命中" |
 | `writing_skill_path` 不存在 | 使用内置质检摘要继续；不自动联网安装 |
-| `diagram_skill_path` 不存在 | 保留报告与研究材料，说明视觉交付未完成；不得生成替代伪图 |
-| `obsidian_vault_path` 未配置或不是 vault | 停止 Phase 3c，请求正确路径；不得把 workspace 临时目录称为 Obsidian 交付 |
-| 图像生成后出现错字或事实错误 | 最多定向修正 1 次；仍失败则 rejected，不嵌入、不计数 |
-| Obsidian 目标目录已存在 | 默认停止，避免覆盖；仅在用户明确授权时使用 `--overwrite` |
-| Obsidian 嵌入或内部链接失效 | 修复并重新验证；未通过不得宣布完整交付 |
 | 研究员超时 | 缩小范围重试 1 次 |
 | 当前模型/运行时不适合长文综合 | 通知用户能力限制，给出已落盘研究材料和建议下一步 |
 | Phase 2c 质检不通过 | 触发 rewrite，修复后再质检 |
@@ -428,5 +332,3 @@ gracker-diagrams/{diagram-name}/
 | Phase 2c 质检 | content-quality-gate 通用质检 | **Gracker 写作四层质检 + 文风禁区 + rewrite 触发** |
 | 文风规范 | 无 | **15 类禁用词/句式，明确 rewrite 触发条件** |
 | 写作规范依赖 | 无 | **可选读取 `gracker-writing`，缺失时使用内置摘要** |
-| 技术图 | 可选或无 | **真实 Gracker 成图 + 中间文件 + 逐图验收** |
-| 知识库交付 | 仅工作区文件 | **完整发布包落盘到 Obsidian，嵌入与链接通过验证** |
